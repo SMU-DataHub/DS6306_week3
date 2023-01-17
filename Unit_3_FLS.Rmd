@@ -307,3 +307,22 @@ batter_new_avg <- batter_new_avg[, c("yearid", "lgid", "teamid", "avg", "playeri
 head(batter_new_avg)
 ```
 What he have here is 39,136 rows of individual players over numerous years in both the AL and NL and their average.  From here, it would be good to sort them by yearid, lgid (AL or NL), teamid and take the average of the averages for each team in each year.  
+
+We have numerous categorical variables and continuous variables.  By assigning a rating to the newly calculated batting average, we can make it easier to decipher at a glance what type of hitter you have.  I'm going to make the following assignment to averages.  
+1. Low = 0 - .125, Med = .126 - .225, High - .226 +
+
+Perhaps I need to break down the averages of the averages by team and then apply the cut()
+
+```{r}
+
+```
+I was able to get the average converted to AvgRating.  I recognize that I needed to group the sets beforehand and take averages of the teams in a year and then do ggplot.  I'm afraid I've run out of time, but I'll keep working until the last possible minute.  
+
+```{r}
+head(batter_new_avg) %>% mutate(AvgRating = cut(avg, breaks = c(0, .125, .225, .500), labels =
+                                            c("Low", "Med", "High"))) #%>%
+                                            #ggplot(aes(x = teamid, y = AvgRating, color = AvgRating)) #+ 
+                                            #geom_point(x = teamid) + ylim(c(0, 10000)) +
+                                            #facet_wrap(vars(AvgRating))
+```
+
