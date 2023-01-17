@@ -1,0 +1,309 @@
+---
+title: "Unit 3 Live session assignment"
+author: "Todd Garner"
+date: "2023-01-14"
+output: 
+  html_document: 
+    toc: yes
+    highlight: espresso
+    theme: spacelab
+    number_sections: yes
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+```
+# Unit 3 - Live Session Assignment
+
+## **Part 1: We would like to analyze the Left Midfielders (LM) versus the Left Forwards (LF). (Estimated / expected time: 2 – 4 hours and at least 2+ slides).**
+
+
+## Question 1 - *Using the FIFA player data set, filter the data set to create a dataframe that has just the Left Midfielders (LM) and Left Forwards (LF).*
+
+I will first load the fifa data set from the csv file.  
+
+```{r}
+library(tidyverse)
+fifa <- read.csv(choose.files(), header = TRUE)
+left_fielders <- fifa %>% filter(Position == "LM" | Position == "LF")
+head(left_fielders)
+```
+## Question 2 - *Use Ggally and ggpairs() and the dataset you created above above, to plot the categorical variable Position (LM and LF), versus the continuous variables Acceleration and Agility.*
+
+As an equation:
+Left_Fielders %>% Plot (LM & LF) against (Acceleration & Agility)
+
+```{r}
+library(GGally)
+#left_fielders %>% select(LM, LF, Acceleration, Agility) %>% ggpairs(aes(colors = LM & LF))
+left_fielders %>% filter(Position == "LM" | Position == "LF") %>% select(Acceleration, Agility, Position) %>% ggpairs(aes(color = Position))
+left_fielders %>% count(Position)
+```
+## Question 3 - *Given the plot above, what relationships do you see?  Comment on these.*
+
+
+From the plot above, an issue I see with this dataset is that there are only 15 Left Forwards (LF) and over 1,000 Left MidFielders (LM).  Whether that impacts the results is unknown at this point, but it's a question that comes to mind.  From the plot, it would appear that the LF's have greater agility and acceleration.  That's suspect given the vast imbalance in the data.  
+
+## Question 4 - *Your client would like to formally test if the mean agility rating of left midfielders is different than that of the left forwards.  Perform a 6 – step t-test to test for the difference in these means.  (You may skip step 2 (draw and shade) if you like.  If you are unfamiliar with the 6-step hypothesis test, see Stat 1 slides or the Bridge Course to review the 6-step hypothesis test.)*
+
+Before I start coding, thinking through the problem I will need the mean agility rating of LM & LF.  From there, a six (5) step t-test can be performed:
+  1. Identify the Null & Alternative Hypothesis
+  2. Draw & Shade the normal distribution at the 95% confidence level (skipped per instructions above)
+  3. Find the Critical Value (t)
+  4. Find the p-value
+  5. Reject or confirm the hypothesis
+  6. Conclusion
+
+### Step 1 - Identify the Null & Alternative Hypothesis
+
+Problem to solve: Is the mean agility of the LF different than the mean agility of the LM? In a basic equation:
+
+M_agil_LF != M_agil_LM
+
+Null Hypothesis - Ho is M_agil_LF = M_agil_LM
+                  Ha is M_agil_LF > or < M_agil_LM
+                  
+                  Ho: mu_LF = mu_LM
+                  Ha: mu_LF > or < mu_LM
+                  
+Let's begin by separating into two data sets.  One for LF and one for LM.  Summarizing the two different datasets: LF & LM.  Along the way, but before summarizing, we need to convert the column "Agility" to numeric from an integer.  
+
+```{r}
+library(dplyr)
+
+LF <- filter(left_fielders, Position == "LF")
+LF1 <- LF %>% mutate_at(vars(Agility), as.numeric)
+head(LF1)
+LM <- filter(left_fielders, Position == "LM")
+LM1 <- LM %>% mutate_at(vars(Agility), as.numeric)
+head(LM1)
+
+```
+### Step 2 - skipped
+
+### Step 3 - Find the critical values
+
+Now, we'll do the summary on each new data frame.  This will be a two sample t-test.  There are a number of ways to do a t-test.  I will focus on the individual data points and then solve for the critical values.  
+
+```{r}
+
+summary(LF1$Agility, var > 0)
+summary(LM1$Agility, var >0)
+paste("This is the standard deviation for the LF Agility data set")
+sd(LF1$Agility, na.rm = FALSE)
+paste("This is the standard deviation for the LM Agility data set")
+sd(LM1$Agility, na.rm = FALSE)
+library(distributional)
+
+paste("This is the variance for the LM Agility data set")
+var(LM1$Agility)
+
+
+```
+Utilizing the data derived above, I solved for the t-score from another software program:  https://www.omnicalculator.com/statistics/t-test#p-value-from-t-test
+
+t-score: 1.8087
+Degrees of freedom: 1,108
+
+### Step 4 - Find the p-value
+
+Again, from the software cited above and the data derived above, I was able to determine the p-value:
+
+p-value: .07076508
+
+### Step 5 - Reject or confirm the hypothesis
+
+Since the p-value is .07076508 and our confidence interval is .05, we cannot reject the Null hypothesis.
+
+
+### Step 6 - Conclusion
+
+At the 95% confidence level, there is not enough evidence present to reject Ho, the Null hypothesis, because the p-value is greater than the confidence interval of 0.05.  
+
+At the 99% confidence level, there was no change in the lack of evidence to reject Ho.  
+
+## Question 5 - *Are the assumptions of this test reasonably met?  If you have not had Stat 1, [I HAVE NOT] simply create a histogram of the agility scores for both groups (LM and LF) and given what you know about the CLT, comment on if you believe the sampling distribution of sample means (of your sample size) will be reasonably normal.  In addition, does there look like there is significant visual evidence to suggest the standard deviations are different? ….. If you have had Stat 1, create the plots listed above (and any other plots you might prefer) and be prepared to be a teacher and teach what you know about the assumptions of the t-test and if those are assumption are reasonably met here.*
+
+In words, the LF data set contains only 15 observations.  This is below the common threshold of 30 that would allow us to safely assume a normal distribution.  From the outset, this was of concern.  The central limit theorem depends upon the data belonging to a normal distribution.  As suggested in the question 5, I will create histograms for both data sets LF1  LM1 and comment on the observations, below.  
+
+```{r}
+LF_df <- data.frame(LF1)
+head(LF_df)
+
+ggplot(LF_df, mapping = aes(x = Agility), binwidth = .1) + geom_histogram(stat = "bin", position = "stack") + ggtitle("LF Agility histogram")
+```
+```{r}
+LM_df <- data.frame(LM1)
+head(LM_df)
+
+ggplot(LM_df, mapping = aes(x = Agility), binwidth = .1) + geom_histogram(stat = "bin", position = "stack") + ggtitle("LM Agility histogram")
+```
+From the visual evidence, the LM Agility dataset appears to be normally distributed, but it is unclear for the LF Agility histogram.  From the data derived above (Question 4 - Step 3), we know that the standard deviations for these two data sets are different.
+
+I'm left with a fairly large question mark regarding the reasonableness of the test results due to the population of the Left Forwards.  In any summary, this question mark would have to be noted in an obvious fashion.  
+
+
+
+#Part 2: (Estimated / expected time 3-5 hours and at least 3+ slides) - Select/create at least 2 categorical variables and select two continuous variables and perform an EDA.  Also, at least one of the categorical variables should be created from a continuous variable (using the cut() function).
+
+*Use these variables to explore the data and tell a story of what you discovered similar to what was shown in the asynch videos.  You do not need to go so far as to use linear regression, but let your curiosity guide you along the way and feel free to use methods you are familiar with that are appropriate to answering those questions. Your evidence could be purely visual or could include additional methods, it is up to you… just do your best and have fun!*
+
+Doing some study on EDA yielded the following basic steps or framework.  Rather than stick to rigid analytical hypothesis testing and their results, the broad overview of EDA is to think more abstractly and holistically about the data and the possible meanings that can be evaluated.  Out of the box thinking.  These five steps were found on Wikipedia:
+
+The objectives of EDA are to:
+
+1. Enable unexpected discoveries in the data
+2. Suggest hypotheses about the causes of observed phenomena
+3. Assess assumptions on which statistical inference will be based
+4. Support the selection of appropriate statistical tools and techniques
+5. Provide a basis for further data collection through surveys or experiments[7]
+
+I have chosen a unique set of data of batting for professional baseball since 1871 for all of the professional teams.  Let's see what we can find!
+
+```{r}
+bat <- read.csv(choose.files(), header = TRUE)
+head(bat)
+```
+Initial observations:
+1. This is a massive data set with 101,332 rows and 22 columns. 
+2. First, I'll take a look at the summary statistics of the set. 
+3. I'll test the data set for column data type.  
+
+```{r}
+library (naniar)
+gg_miss_var(bat) + ggtitle("Baseball batting data set from 1871 to present showing NA's")
+str(bat)
+```
+I have decided to cull many years from the data set as there are many "NA" values that appear.  I can imagine that this is due to poor record keeping in the late 1800's.  I will filter the set down to 1981 to the present (or, the end of the data set in the most recent year).  It still yields over 40,000 observations.  I will also take a look at missing observations or observations that have "NA" somewhere in the rows.  And, I'll take a look at the summary of the data set bat_1980.
+
+```{r}
+bat_1980 <- filter(bat, yearid > 1980)
+gg_miss_var(bat_1980) + ggtitle("Baseball batting data set from 1981 to present")
+head(bat_1980)
+summary(bat_1980)
+```
+Secondary observations reveal that there are 3885 NA values out of a total of 43,021 observation.  Looking at the data set, I notice that primarily there are NA's across the entire row versus just a few random NA's sprinkled in the observations.  This leads me to believe that there is a possibility that these observations are for pitchers in the American League.  This is because pitchers rarely if ever bat and are replaced by the designated hitter(DH). Unfortunately, it does not appear that the player's position is within the data set.  I will view the first part of the data set to take a random sample of the NA's and make sure that there are NA's across the statistics for certain players.   
+```{r}
+head(bat_1980)
+```
+As I suspected, there are numerous players with no batting statistics, yet the games played shows a positive number.  3885 out of 43,021 is approximately 9% of the total players.  Not an unreasonable presumption that these are indeed pitchers.  Perhaps one more filter will reveal more information.  I'll filter only the league ID (lgid) for AL to see how many NA's this subset contains.  
+```{r}
+bat_1980_p <- filter(bat_1980, lgid == "AL")
+summary(bat_1980_p)
+
+```
+As I suspected, all 3885 NA's in the set are contained in the American League (AL).  There are a total of 21,311 observations or about half of the observations come from the AL.  All NA's are from the AL.  So, I think we can remove these players from the data set and not lose any batting information. For those unfamiliar with baseball, the National League (NL) and the American League (AL) have a fundamental difference.  The American League allows for a Designated Hitter to bat for the pitcher, whereas the National League requires that the pitchers hit for themselves.  Know this factoid is what lead me to my conclusion.  
+```{r}
+bat_1980_mod <- filter(bat_1980, ab != "NA")
+summary(bat_1980_mod)
+
+
+```
+Removing the NA's for the number of "at bats" (ab) provides us with a clean data set for batters from 1981 to the present.  This is a total of 39,136 observations.  43,021 - 3885 = 39,136.  Let's look at the data set again from the prior perspective.
+```{r}
+gg_miss_var(bat_1980_mod) + ggtitle("Baseball batter set from 1981 forward with all NA's removed")
+head(bat_1980_mod)
+summary(bat_1980_mod)
+```
+A solid data set with no missing values.  Moving on, let's look at the distribution of the data set to see what kind of insights come from visualization.  First, let's think about the data set and what we might want to focus upon as there are 22 columns from which to select.  To illuminate the codes, I've copied and pasted the legend below:
+
+2.2 Batting Table
+playerID       Player ID code
+yearID         Year
+stint          player's stint (order of appearances within a season)
+teamID         Team
+lgID           League
+G              Games
+AB             At Bats
+R              Runs
+H              Hits
+2B             Doubles
+3B             Triples
+HR             Homeruns
+RBI            Runs Batted In
+SB             Stolen Bases
+CS             Caught Stealing
+BB             Base on Balls
+SO             Strikeouts
+IBB            Intentional walks
+HBP            Hit by pitch
+SH             Sacrifice hits
+SF             Sacrifice flies
+GIDP           Grounded into double plays
+
+The Player ID code "playerID" is found in a separate data set called Master.csv on the same site.  It would provide the names of the players if that were important.  At this point, I don't feel that's necessary but it's good to know it's possible.  
+
+I think the number of at bats (ab) is an important factor as is the number of Hits (H) and Runs (r).  This will provide the season average for as many at bats during one season for a particular batter.  Games (g) is another factor we should look at as that will provide some insight as to how often the player played during the season.  It's unclear whether Hits is all inclusive as there are metrics for doubles, triples and home runs.  We should probably look at all of them to determine that factor.  Team and League is secondary, but may be of interest as well as the year.  
+
+Description of variables
+
+Continuous variables:
+1. At Bats (ab)
+2. Runs (r)
+3. Hits (h)
+4. Doubles (X2b)
+5. Triples (X3b)
+6. Home Runs (HR)
+7. RBI's (rbi)
+8. Games (g)
+9. Base on balls (bb)
+
+Categorical variables:
+1. Team (teamid)
+2. Player ID (playerid)
+3. Year (yearid)
+4. League (lgid)
+
+Perhaps splitting the data into yearly, team sets would make it interesting.  
+```{r}
+teams <- unique(bat_1980_mod$teamid)
+teams
+summary(teams)
+```
+There are 35 teams shown in the summary of teams.  I found a teams.csv on the same web site so I'll see about incorporating that into this data set so we can see exactly what team we're looking at.  After spending way too much time on this, I moved on.  At some point, I'll figure out how to use a key in both sets to join them and only include the values I'm seeking.  In reality, it doesn't impact the statistics.  
+
+Next, I will select the columns I listed above to make on new dataframe from which to begin the analysis.  Visualization of the data should prove fruitful.  
+```{r}
+
+bat_new <- select(bat_1980_mod, yearid, ab, r, h, X2b, X3b, HR, rbi, g, bb, teamid, playerid, lgid)
+View(bat_new)
+```
+I think separating the data set into AL and NL makes sense.  It should make for a good comparison for each subsequent iteration.  
+```{r}
+bat_new_AL <- filter(bat_new, lgid == "AL")
+head(bat_new_AL)
+bat_new_NL <- filter(bat_new, lgid == "NL")
+head(bat_new_NL)
+```
+We have to keep in mind that the AL data set is 3885 smaller than the NL, but I wouldn't imagine with this amount of observations that it will impact stats materially.  Thinking out loud, it makes sense to segregate data by year, by team and derive some meaningful metrics like team batting average for the season, among others.  This seems like possibly a for or while loop going team by team but perhaps there's another way.  I'll research.
+
+The first thing I notice is that all of the columns are integer columns, which would make combining them in some arithmetic operation problematic.  Converting these columns from integer to numeric is the first task.  I had to remove the character columns first so now I'll add them back in.  
+
+```{r}
+library(dplyr)
+bat_temp_int <- select(bat_new, c("ab", "r", "h", "X2b", "X3b", "HR", "rbi", "g", "bb"))
+head(bat_temp_int)
+bat_new_num <- bat_temp_int %>% mutate_all(as.numeric)
+head(bat_new_num)
+bat_new_char <- select(bat_new, c("yearid", "lgid", "teamid", "playerid"))
+head(bat_new_char)
+
+batter_new <- cbind(bat_new_char, bat_new_num)
+head(batter_new)
+
+
+```
+Now, we can do some real analysis.  What I'd like to see now is the batting average for each team by year.  I have no idea how to do this, but I'll figure it out.  
+
+I think if I mutate a new row called "avg", I can take "hits/ab" and get an average for each play in each year.  This will be done in a completely new data frame called "batter_new_avg".  Let's give it a shot.  
+```{r}
+batter_new_avg = batter_new %>% mutate(avg = h/ab)
+head(batter_new_avg)
+```
+Now that I have average, I'd like to arrange where it's over on the left.
+
+```{r}
+batter_new_avg <- batter_new_avg[, c("yearid", "lgid", "teamid", "avg", "playerid", "ab", "r", "h", "X2b", "X3b", "HR", "rbi", "g", "bb")]
+head(batter_new_avg)
+```
+What he have here is 39,136 rows of individual players over numerous years in both the AL and NL and their average.  From here, it would be good to sort them by yearid, lgid (AL or NL), teamid and take the average of the averages for each team in each year.  
