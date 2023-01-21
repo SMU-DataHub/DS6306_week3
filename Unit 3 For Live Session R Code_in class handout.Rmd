@@ -1,0 +1,43 @@
+---
+title: "Unit 3 For Live Session R Code"
+output: html_document
+editor_options: 
+  chunk_output_type: console
+---
+
+
+# Load Required Packages
+```{r}
+#install.packages("tidyverse")
+library(tidyverse)
+#install.packages("GGally")
+library(GGally)
+```
+
+# Wrangle Data: Filter to get only LM and LF and get the Position factor to have 2 levels
+```{r}
+FIFA = read.csv(file.choose(), header = TRUE)
+FIFA2 = FIFA %>% filter(Position == "LM" | Position == "LF")
+View(FIFA2)
+FIFA2$Position = as.factor(as.character(FIFA2$Position))
+```
+
+# Plot matrix of only variables of interest
+```{r}
+FIFA2 %>% select(Acceleration, Agility, Position) %>% ggpairs(aes(color = Position))
+```
+
+# Perform T Test
+```{r}
+t.test(Agility~Position, data = FIFA2)
+```
+
+# Check assumptions with histograms 
+```{r}
+summary(FIFA2$Position)
+FIFA2 %>% ggplot(aes(x = Agility, color = Position, fill = Position)) + geom_histogram(bins = 9) + facet_wrap(~Position)
+FIFA2 %>% filter(Position == "LF") %>% ggplot(aes(x = Agility, color = Position, fill = Position)) + geom_histogram(bins = 9)
+```
+
+FIFA3 = mutate(FIFA, PositionGroup = if_else(Position == "GK", "GK", if_else(Position == "CB" | Position == "LCB" | Position == "LWB" | Position == "LB" | Position == "RCB" | Position == "RB" | Position == "RWB", "DEF", if_else(Position == "CDM" | Position == "RDM" | Position == "RCM" | Position == "RM" | Position == "LDM" | Position == "LCM" | Position == "LM" | Position == "RAM" | Position == "LAM" | Position == "CAM", "MID", "ATT"))))
+
